@@ -24,6 +24,19 @@ class KMLConverter {
             this.charMap.set(en[i], ar[i]);
             this.charMapCapital.set(enCapital[i], ar[i]);
         }
+
+        // Initialize number mapping (Western to Eastern Arabic numerals)
+        this.numberMap = new Map();
+        this.numberMap.set('0', '٠');
+        this.numberMap.set('1', '١');
+        this.numberMap.set('2', '٢');
+        this.numberMap.set('3', '٣');
+        this.numberMap.set('4', '٤');
+        this.numberMap.set('5', '٥');
+        this.numberMap.set('6', '٦');
+        this.numberMap.set('7', '٧');
+        this.numberMap.set('8', '٨');
+        this.numberMap.set('9', '٩');
     }
 
     initializeEventListeners() {
@@ -219,6 +232,10 @@ class KMLConverter {
             }
             else if (char === '.') {
                 convertedName += char;
+            }
+            // Convert Western Arabic numerals to Eastern Arabic numerals
+            else if (this.numberMap.has(char)) {
+                convertedName += this.numberMap.get(char);
             }
             // Check lowercase mapping
             else if (this.charMap.has(char)) {
