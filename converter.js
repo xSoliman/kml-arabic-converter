@@ -215,20 +215,10 @@ class KMLConverter {
         // 1. Remove unnecessary underscores (keep if between numbers)
         name = name.replace(/(?<!\d)_(?!\d)/g, '');
 
-        // 2. Swap all bracket types for RTL display
-        name = name.replace(/\(/g, 'TEMP_PAREN_OPEN');
-        name = name.replace(/\)/g, 'TEMP_PAREN_CLOSE');
-        name = name.replace(/\[/g, 'TEMP_BRACKET_OPEN');
-        name = name.replace(/\]/g, 'TEMP_BRACKET_CLOSE');
-        name = name.replace(/\{/g, 'TEMP_BRACE_OPEN');
-        name = name.replace(/\}/g, 'TEMP_BRACE_CLOSE');
-        // Now swap
-        name = name.replace(/TEMP_PAREN_OPEN/g, ')');
-        name = name.replace(/TEMP_PAREN_CLOSE/g, '(');
-        name = name.replace(/TEMP_BRACKET_OPEN/g, ']');
-        name = name.replace(/TEMP_BRACKET_CLOSE/g, '[');
-        name = name.replace(/TEMP_BRACE_OPEN/g, '}');
-        name = name.replace(/TEMP_BRACE_CLOSE/g, '{');
+        // 2. Wrap the entire bracketed substring (including brackets) with RLE and PDF
+        name = name.replace(/\([^\)]*\)/g, function(match) { return '\u202B' + match + '\u202C'; });
+        name = name.replace(/\[[^\]]*\]/g, function(match) { return '\u202B' + match + '\u202C'; });
+        name = name.replace(/\{[^\}]*\}/g, function(match) { return '\u202B' + match + '\u202C'; });
 
         let convertedName = '';
 
@@ -268,6 +258,9 @@ class KMLConverter {
                 convertedName += char;
             }
         }
+
+        // Replace escaped unicode with real unicode
+        convertedName = convertedName.replace(/\\u202B/g, '\u202B').replace(/\\u202C/g, '\u202C');
 
         return convertedName;
     }
