@@ -269,9 +269,6 @@ class KMLConverter {
             }
         }
 
-        // Replace escaped unicode with real unicode
-        convertedName = convertedName.replace(/\\u202B/g, '\u202B').replace(/\\u202C/g, '\u202C');
-
         return convertedName;
     }
 
