@@ -215,10 +215,10 @@ class KMLConverter {
         // 1. Remove unnecessary underscores (keep if between numbers)
         name = name.replace(/(?<!\d)_(?!\d)/g, '');
 
-        // 2. Wrap the entire bracketed substring (including brackets) with RLE and PDF
-        name = name.replace(/\([^\)]*\)/g, function(match) { return '\u202B' + match + '\u202C'; });
-        name = name.replace(/\[[^\]]*\]/g, function(match) { return '\u202B' + match + '\u202C'; });
-        name = name.replace(/\{[^\}]*\}/g, function(match) { return '\u202B' + match + '\u202C'; });
+        // 2. Wrap the entire bracketed substring (including brackets) with RLE and PDF using real Unicode
+        name = name.replace(/\([^)]+\)/g, function(match) { return '\u202B' + match + '\u202C'; });
+        name = name.replace(/\[[^\]]+\]/g, function(match) { return '\u202B' + match + '\u202C'; });
+        name = name.replace(/\{[^\}]+\}/g, function(match) { return '\u202B' + match + '\u202C'; });
 
         let convertedName = '';
 
@@ -258,9 +258,6 @@ class KMLConverter {
                 convertedName += char;
             }
         }
-
-        // Replace escaped unicode with real unicode
-        convertedName = convertedName.replace(/\\u202B/g, '\u202B').replace(/\\u202C/g, '\u202C');
 
         return convertedName;
     }
