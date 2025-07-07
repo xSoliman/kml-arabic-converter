@@ -215,49 +215,78 @@ class KMLConverter {
         // 1. Remove unnecessary underscores (keep if between numbers)
         name = name.replace(/(?<!\d)_(?!\d)/g, '');
 
-        // 2. Wrap the entire bracketed substring (including brackets) with RLE and PDF using real Unicode
-        name = name.replace(/\([^)]+\)/g, function(match) { return '\u202B' + match + '\u202C'; });
-        name = name.replace(/\[[^\]]+\]/g, function(match) { return '\u202B' + match + '\u202C'; });
-        name = name.replace(/\{[^\}]+\}/g, function(match) { return '\u202B' + match + '\u202C'; });
+        // 2. Convert inside brackets, then wrap the whole with RLE/PDF
+        // Helper to convert inside brackets
+        const convertInner = (inner) => {
+            let result = '';
+            for (let i = 0; i < inner.length; i++) {
+                const char = inner[i];
+                if (char.charCodeAt(0) >= 0x0600 && char.charCodeAt(0) <= 0x06FF) {
+                    result += char;
+                } else if (char === 'b' || char === 'B') {
+                    result += 'لا';
+                } else if (char === ',') {
+                    result += 'و';
+                } else if (char === '.') {
+                    result += char;
+                } else if (this.numberMap.has(char)) {
+                    result += this.numberMap.get(char);
+                } else if (this.charMap.has(char)) {
+                    result += this.charMap.get(char);
+                } else if (this.charMapCapital.has(char)) {
+                    result += this.charMapCapital.get(char);
+                } else {
+                    result += char;
+                }
+            }
+            return result;
+        };
 
+        // Replace bracketed substrings: (), [], {}
+        name = name.replace(/\(([^)]*)\)/g, (match, inner) => {
+            return '\u202B(' + convertInner(inner) + ')\u202C';
+        });
+        name = name.replace(/\[([^\]]*)\]/g, (match, inner) => {
+            return '\u202B[' + convertInner(inner) + ']\u202C';
+        });
+        name = name.replace(/\{([^}]*)\}/g, (match, inner) => {
+            return '\u202B{' + convertInner(inner) + '}\u202C';
+        });
+
+        // Now convert the rest of the string (outside brackets)
         let convertedName = '';
-
         for (let i = 0; i < name.length; i++) {
+            // If we hit an RLE, copy until PDF
+            if (name[i] === '\u202B') {
+                let end = name.indexOf('\u202C', i);
+                if (end !== -1) {
+                    convertedName += name.slice(i, end + 6); // '\u202C' is 6 chars
+                    i = end + 5; // will be incremented by for loop
+                    continue;
+                }
+            }
             const char = name[i];
-            
-            // Check if character is already Arabic (Unicode range for Arabic)
             if (char.charCodeAt(0) >= 0x0600 && char.charCodeAt(0) <= 0x06FF) {
-                // Keep Arabic characters as they are
                 convertedName += char;
-            }
-            // Special case for 'b' and 'B' -> 'لا'
-            else if (char === 'b' || char === 'B') {
+            } else if (char === 'b' || char === 'B') {
                 convertedName += 'لا';
-            }
-            // Convert commas to و, but keep periods to preserve decimal numbers
-            else if (char === ',') {
+            } else if (char === ',') {
                 convertedName += 'و';
-            }
-            else if (char === '.') {
+            } else if (char === '.') {
                 convertedName += char;
-            }
-            // Convert Western Arabic numerals to Eastern Arabic numerals
-            else if (this.numberMap.has(char)) {
+            } else if (this.numberMap.has(char)) {
                 convertedName += this.numberMap.get(char);
-            }
-            // Check lowercase mapping
-            else if (this.charMap.has(char)) {
+            } else if (this.charMap.has(char)) {
                 convertedName += this.charMap.get(char);
-            }
-            // Check uppercase mapping
-            else if (this.charMapCapital.has(char)) {
+            } else if (this.charMapCapital.has(char)) {
                 convertedName += this.charMapCapital.get(char);
-            }
-            // Keep other characters unchanged
-            else {
+            } else {
                 convertedName += char;
             }
         }
+
+        // Replace escaped unicode with real unicode
+        convertedName = convertedName.replace(/\\u202B/g, '\u202B').replace(/\\u202C/g, '\u202C');
 
         return convertedName;
     }
