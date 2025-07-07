@@ -215,8 +215,7 @@ class KMLConverter {
         // 1. Remove unnecessary underscores (keep if between numbers)
         name = name.replace(/(?<!\d)_(?!\d)/g, '');
 
-        // 2. Convert inside brackets, then wrap the whole with RLE/PDF
-        // Helper to convert inside brackets
+        // 2. Convert inside parentheses (), then wrap the whole with RLE/PDF
         const convertInner = (inner) => {
             let result = '';
             for (let i = 0; i < inner.length; i++) {
@@ -242,15 +241,9 @@ class KMLConverter {
             return result;
         };
 
-        // Replace bracketed substrings: (), [], {}
+        // Only replace parenthesis substrings: ()
         name = name.replace(/\(([^)]*)\)/g, (match, inner) => {
             return '\u202B(' + convertInner(inner) + ')\u202C';
-        });
-        name = name.replace(/\[([^\]]*)\]/g, (match, inner) => {
-            return '\u202B[' + convertInner(inner) + ']\u202C';
-        });
-        name = name.replace(/\{([^}]*)\}/g, (match, inner) => {
-            return '\u202B{' + convertInner(inner) + '}\u202C';
         });
 
         // Now convert the rest of the string (outside brackets)
