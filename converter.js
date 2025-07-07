@@ -212,6 +212,20 @@ class KMLConverter {
         name = name.replace(/&lt;/g, 'و');
         name = name.replace(/&apos;/g, 'ط');
 
+        // 1. Remove unnecessary underscores (keep if between numbers)
+        // Replace underscores not between digits with empty string
+        name = name.replace(/(?<!\d)_(?!\d)/g, '');
+
+        // 2. Fix bracket direction for Arabic (RTL)
+        // Replace ( ) with 9 8, [ ] with  5D  5B, { } with  7D  7B
+        // Or use mirrored Unicode: ( ) → ) ( , [ ] → ] [ , { } → } {
+        name = name.replace(/\(/g, '\u200F)'); // Add RTL mark for safety
+        name = name.replace(/\)/g, '\u200F(');
+        name = name.replace(/\[/g, '\u200F]');
+        name = name.replace(/\]/g, '\u200F[');
+        name = name.replace(/\{/g, '\u200F}');
+        name = name.replace(/\}/g, '\u200F{');
+
         let convertedName = '';
 
         for (let i = 0; i < name.length; i++) {
