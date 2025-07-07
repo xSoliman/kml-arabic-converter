@@ -249,15 +249,6 @@ class KMLConverter {
         // Now convert the rest of the string (outside brackets)
         let convertedName = '';
         for (let i = 0; i < name.length; i++) {
-            // If we hit an RLE, copy until PDF
-            if (name[i] === '\u202B') {
-                let end = name.indexOf('\u202C', i);
-                if (end !== -1) {
-                    convertedName += name.slice(i, end + 6); // '\u202C' is 6 chars
-                    i = end + 5; // will be incremented by for loop
-                    continue;
-                }
-            }
             const char = name[i];
             if (char.charCodeAt(0) >= 0x0600 && char.charCodeAt(0) <= 0x06FF) {
                 convertedName += char;
