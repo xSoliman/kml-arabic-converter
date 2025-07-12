@@ -133,7 +133,6 @@ This project is open source and available under the MIT License.
 ## 🙏 Acknowledgments
 
 - Built with modern web standards
-- Inspired by the original Sosa Converter
 - Designed for Arabic-speaking users
 - Optimized for KML file processing
 
