@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Sample KML with Area Values</name>
+    <Placemark>
+      <name>Area 1: 5000 m²</name>
+      <description>This is a test area with 5000 square meters</description>
+      <Point>
+        <coordinates>30.0444,31.2357,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Area 2: 10000 m^2</name>
+      <description>This is another test area with 10000 square meters</description>
+      <Point>
+        <coordinates>30.0445,31.2358,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Area 3: 1000 m2</name>
+      <description>Small area with 1000 square meters</description>
+      <Point>
+        <coordinates>30.0446,31.2359,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Area 4: 2500 م²</name>
+      <description>Area with Arabic text and 2500 square meters</description>
+      <Point>
+        <coordinates>30.0447,31.2360,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>No Area Here</name>
+      <description>This placemark has no area value</description>
+      <Point>
+        <coordinates>30.0448,31.2361,0</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml> 

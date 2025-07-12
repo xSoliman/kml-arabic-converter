@@ -6,6 +6,7 @@ A simple web application that converts English letters to Arabic in KML files ba
 
 - **File Upload**: Drag & drop or click to select KML files
 - **Character Mapping**: Converts English letters to their Arabic keyboard equivalents
+- **Arabic Unit Conversion**: Optional feature to convert area units (m²) to Arabic units (سهم، قيراط، فدان)
 - **Decimal Preservation**: Keeps commas (,) and periods (.) unchanged to preserve decimal numbers
 - **Progress Tracking**: Shows conversion progress in real-time
 - **No Server Required**: Works entirely in the browser
@@ -44,8 +45,21 @@ The app uses the same character mapping as the original Sosa Converter:
 ## How to Use
 
 1. **Upload KML File**: Click the upload area or drag & drop a KML file
-2. **Convert**: Click the "Convert KML" button to process the file
-3. **Download**: Click "Download Converted File" to save the result
+2. **Enable Arabic Unit Conversion** (Optional): Check the checkbox to convert area units to Arabic units
+3. **Convert**: Click the "Convert KML" button to process the file
+4. **Download**: Click "Download Converted File" to save the result
+
+## Arabic Unit Conversion
+
+When enabled, the app will automatically detect and convert area values in placemark names:
+
+- **Supported Formats**: `5000 m²`, `5000 m^2`, `5000 m2`, `5000 m%%142`, etc.
+- **Conversion Rules**:
+  - 1 فدان (feddan) = 4200.83 m²
+  - 1 قيراط (qirat) = 24 سهم (sahm)
+  - 1 سهم (sahm) = 7.293125 m²
+- **Output Format**: Shows the original value with Arabic "م" unit, followed by the conversion in Arabic-Indic digits
+- **Example**: `5000 m²` becomes `5000 م\n1 ف 4 ط 13 س`
 
 ## Local Development
 
@@ -81,6 +95,8 @@ The app uses the same character mapping as the original Sosa Converter:
 kml-converter/
 ├── index.html          # Main HTML file
 ├── converter.js        # JavaScript conversion logic
+├── style.css           # CSS styling
+├── sample.kml          # Sample KML file for testing
 └── README.md          # This file
 ```
 

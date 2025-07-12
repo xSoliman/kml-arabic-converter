@@ -5,6 +5,13 @@ class KMLConverter {
         this.selectedFile = null;
         this.convertedContent = null;
         
+        // Arabic unit conversion constants
+        this.ARABIC_UNITS = {
+            FEDDAN_TO_M2: 4200.83,
+            QIRAT_TO_SAHM: 24,
+            SAHM_TO_M2: 7.293125
+        };
+        
         this.initializeCharMaps();
         this.initializeEventListeners();
     }
@@ -207,6 +214,14 @@ class KMLConverter {
             return name.trim().substring(1);
         }
 
+        // Check if Arabic unit conversion is enabled
+        const arabicUnitsEnabled = document.getElementById('arabicUnitsCheckbox').checked;
+        
+        // Process area conversion if enabled
+        if (arabicUnitsEnabled) {
+            name = this.processAreaConversion(name);
+        }
+
         // Replace HTML entities with Arabic characters
         name = name.replace(/&gt;/g, 'ز');
         name = name.replace(/&lt;/g, 'و');
@@ -270,6 +285,85 @@ class KMLConverter {
         }
 
         return convertedName;
+    }
+
+    processAreaConversion(name) {
+        // Regex to match area patterns like "5000 m²", "5000 m^2", "5000 m%%142", etc.
+        // Also matches variations with spaces and different formats
+        const areaPattern = /(\d+(?:\.\d+)?)\s*(m\^?2|m%%142|m²|م²|م\^?2|m2|م2)/gi;
+        
+        return name.replace(areaPattern, (match, areaValue, unit) => {
+            const area = parseFloat(areaValue);
+            if (isNaN(area) || area <= 0) return match;
+            
+            const arabicConversion = this.convertToArabicUnits(area);
+            if (!arabicConversion) return match;
+            
+            // Replace the unit with Arabic "م" and add the conversion
+            return `${areaValue} م\n${arabicConversion}`;
+        });
+    }
+
+    convertToArabicUnits(areaInM2) {
+        try {
+            // Convert to sahm first (smallest unit)
+            const totalSahm = areaInM2 / this.ARABIC_UNITS.SAHM_TO_M2;
+            
+            // Convert to larger units
+            const totalQirat = totalSahm / this.ARABIC_UNITS.QIRAT_TO_SAHM;
+            const totalFeddan = totalQirat / 24; // 1 feddan = 24 qirat
+            
+            // Calculate whole units and remainders
+            const feddan = Math.floor(totalFeddan);
+            const remainingQirat = Math.floor(totalQirat - (feddan * 24));
+            const remainingSahm = Math.floor(totalSahm - (feddan * 24 * this.ARABIC_UNITS.QIRAT_TO_SAHM) - (remainingQirat * this.ARABIC_UNITS.QIRAT_TO_SAHM));
+            
+            // Format with Arabic-Indic digits
+            const parts = [];
+            
+            if (feddan > 0) {
+                parts.push(`${this.toArabicDigits(feddan)} ف`);
+            }
+            if (remainingQirat > 0) {
+                parts.push(`${this.toArabicDigits(remainingQirat)} ط`);
+            }
+            if (remainingSahm > 0) {
+                parts.push(`${this.toArabicDigits(remainingSahm)} س`);
+            }
+            
+            // If no conversion possible, return null
+            if (parts.length === 0) {
+                return null;
+            }
+            
+            // Reverse the order to show feddan first, then qirat, then sahm
+            return parts.reverse().join(' ');
+        } catch (error) {
+            console.error('Error converting to Arabic units:', error);
+            return null;
+        }
+    }
+
+    toArabicDigits(number) {
+        return number.toString().replace(/[0-9]/g, (digit) => {
+            return this.numberMap.get(digit) || digit;
+        });
+    }
+
+    // Test method for debugging Arabic unit conversion
+    testArabicUnitConversion() {
+        const testCases = [
+            { input: 5000, expected: '1 ف 4 ط 13 س' },
+            { input: 10000, expected: '2 ف 15 ط 8 س' },
+            { input: 1000, expected: '5 ط 12 س' },
+            { input: 100, expected: '13 س' }
+        ];
+
+        console.log('Testing Arabic unit conversion:');
+        testCases.forEach(testCase => {
+            const result = this.convertToArabicUnits(testCase.input);
+            console.log(`${testCase.input} m² -> ${result} (expected: ${testCase.expected})`);
+        });
     }
 
     updateProgress(percentage) {
