@@ -298,9 +298,8 @@ class KMLConverter {
             
             const arabicConversion = this.convertToArabicUnits(area);
             if (!arabicConversion) return '';
-            // Use RLE/PDF to ensure correct RTL display for Arabic-Indic digits and parentheses
-            // \u202B = RLE (Right-to-Left Embedding), \u202C = PDF (Pop Directional Formatting)
-            return '\u202B(' + arabicConversion + ')\u202C';
+            // Use Arabic-style parentheses ﴾ ﴿ and RLE/PDF for correct RTL display
+            return '\u202B\uFD3E' + arabicConversion + '\uFD3F\u202C';
         });
     }
 
@@ -316,26 +315,25 @@ class KMLConverter {
             // Calculate whole units and remainders
             const feddan = Math.floor(totalFeddan);
             const remainingQirat = Math.floor(totalQirat - (feddan * 24));
-            const remainingSahm = Math.floor(totalSahm - (feddan * 24 * this.ARABIC_UNITS.QIRAT_TO_SAHM) - (remainingQirat * this.ARABIC_UNITS.QIRAT_TO_SAHM));
+            // Sahm with 2 decimal places
+            const remainingSahm = totalSahm - (feddan * 24 * this.ARABIC_UNITS.QIRAT_TO_SAHM) - (remainingQirat * this.ARABIC_UNITS.QIRAT_TO_SAHM);
+            const sahmFixed = remainingSahm.toFixed(2);
             
             // Format with Arabic-Indic digits
             const parts = [];
-            
             if (feddan > 0) {
                 parts.push(`${this.toArabicDigits(feddan)} ف`);
             }
             if (remainingQirat > 0) {
                 parts.push(`${this.toArabicDigits(remainingQirat)} ط`);
             }
-            if (remainingSahm > 0) {
-                parts.push(`${this.toArabicDigits(remainingSahm)} س`);
-            }
+            // Always show sahm, even if zero
+            parts.push(`${this.toArabicDigits(sahmFixed)} س`);
             
             // If no conversion possible, return null
             if (parts.length === 0) {
                 return null;
             }
-            
             // Reverse the order to show feddan first, then qirat, then sahm
             return parts.reverse().join(' ');
         } catch (error) {
