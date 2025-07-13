@@ -327,7 +327,7 @@ class KMLConverter {
             if (remainingQirat > 0) {
                 parts.push(`${this.toArabicDigits(remainingQirat)} ط`);
             }
-            // Always show sahm, even if zero
+            // Always show sahm, even if zero, with Arabic decimal separator
             parts.push(`${this.toArabicDigits(sahmFixed)} س`);
             
             // If no conversion possible, return null
@@ -343,8 +343,10 @@ class KMLConverter {
     }
 
     toArabicDigits(number) {
-        return number.toString().replace(/[0-9]/g, (digit) => {
-            return this.numberMap.get(digit) || digit;
+        // Convert Western digits to Arabic-Indic and '.' to Arabic decimal separator
+        return number.toString().replace(/[0-9.]/g, (char) => {
+            if (char === '.') return '٫'; // Arabic decimal separator
+            return this.numberMap.get(char) || char;
         });
     }
 
