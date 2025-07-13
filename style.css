@@ -21,7 +21,7 @@ body {
     border-radius: 28px;
     box-shadow: 0 24px 48px rgba(102, 126, 234, 0.13), 0 2px 8px rgba(0,0,0,0.04);
     padding: 28px 20px 18px 20px;
-    max-width: 600px;
+    max-width: 1000px;
     width: 100%;
     text-align: center;
     position: relative;
@@ -30,6 +30,30 @@ body {
 
 .container:hover {
     box-shadow: 0 32px 64px rgba(102, 126, 234, 0.18), 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.main-content {
+    display: flex;
+    gap: 24px;
+    margin: 20px 0;
+    align-items: flex-start;
+}
+
+.main-section {
+    flex: 1;
+    text-align: center;
+}
+
+.side-section {
+    flex: 0 0 320px;
+    text-align: right;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 16px;
 }
 
 .main-title {
@@ -370,12 +394,159 @@ body {
     box-shadow: 0 4px 16px rgba(102, 126, 234, 0.10);
 }
 
+.side-convert-box {
+    background: #f8f9fa;
+    border: 1.5px solid #e3e7ef;
+    border-radius: 14px;
+    padding: 16px 14px 14px 14px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.04);
+    text-align: right;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.side-convert-box:hover {
+    border-color: #667eea;
+    background: #f0f4ff;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1);
+}
+
+.side-title {
+    font-size: 1.08em;
+    color: #3a3a3a;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.side-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.side-input {
+    flex: 1;
+    padding: 7px 10px;
+    border: 1.5px solid #ccd6f6;
+    border-radius: 8px;
+    font-size: 1em;
+    font-family: inherit;
+    direction: ltr;
+    text-align: left;
+    transition: border 0.2s;
+}
+
+.side-input:focus {
+    border-color: #667eea;
+    outline: none;
+}
+
+.side-btn {
+    min-width: 80px;
+    padding: 7px 12px;
+    font-size: 1em;
+    border-radius: 8px;
+}
+
+.side-result {
+    min-height: 24px;
+    font-size: 1.08em;
+    color: #2c3e50;
+    font-weight: 600;
+    direction: rtl;
+    margin-top: 4px;
+    word-break: break-word;
+}
+
+.side-result-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.copy-btn {
+    background: transparent;
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(.4,2,.6,1);
+    flex-shrink: 0;
+    margin-top: 2px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.copy-btn:hover {
+    background: transparent;
+    border-color: #5a67d8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
+}
+
+.copy-btn:active {
+    background: transparent;
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.copy-btn.success {
+    border-color: #10b981;
+    background: transparent;
+}
+
+.copy-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.copy-btn:hover::before {
+    left: 100%;
+}
+
+.copy-icon {
+    font-size: 14px;
+    color: #667eea;
+    font-weight: 600;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.copy-btn:hover .copy-icon {
+    color: #5a67d8;
+}
+
+.copy-btn.success .copy-icon {
+    color: #10b981;
+}
+
 @media (max-width: 700px) {
     .container {
         padding: 12px 2vw 8px 2vw;
+        max-width: 95vw;
     }
     .divider {
         margin: 8px auto 10px auto;
+    }
+    .main-content {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .side-section {
+        flex: none;
+        width: 100%;
+    }
+    .button-group {
+        flex-direction: column;
+        gap: 8px;
     }
     .btn {
         min-width: 80px;

@@ -15,39 +15,63 @@
 
         <div class="divider"></div>
 
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">📁</div>
-            <div class="upload-text">انقر لاختيار أو اسحب وأفلت ملف KML</div>
-            <input type="file" id="fileInput" class="file-input" accept=".kml">
-        </div>
+        <div class="main-content">
+            <!-- القسم الرئيسي -->
+            <div class="main-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">انقر لاختيار أو اسحب وأفلت ملف KML</div>
+                    <input type="file" id="fileInput" class="file-input" accept=".kml">
+                </div>
 
-        <div class="selected-file" id="selectedFile">
-            <div class="file-name" id="fileName"></div>
-            <div class="file-size" id="fileSize"></div>
-        </div>
+                <div class="selected-file" id="selectedFile">
+                    <div class="file-name" id="fileName"></div>
+                    <div class="file-size" id="fileSize"></div>
+                </div>
 
-        <div class="options-container">
-            <label class="option-checkbox">
-                <input type="checkbox" id="arabicUnitsCheckbox">
-                <span class="checkmark"></span>
-                <span class="option-text">
-                    <strong>تحويل وحدات المساحة</strong><br>
-                    <small>تحويل (م²) إلى الوحدات العربية (سهم، قيراط، فدان)</small>
-                </span>
-            </label>
-        </div>
+                <div class="options-container">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="arabicUnitsCheckbox">
+                        <span class="checkmark"></span>
+                        <span class="option-text">
+                            <strong>تحويل وحدات المساحة</strong><br>
+                            <small>تحويل (م²) إلى الوحدات العربية (سهم، قيراط، فدان)</small>
+                        </span>
+                    </label>
+                </div>
 
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Processing...</div>
+                </div>
+
+                <div class="status" id="status"></div>
+
+                <div class="button-group">
+                    <button class="btn" id="convertBtn" disabled>تحويل KML</button>
+                    <button class="btn" id="downloadBtn" disabled>تحميل الملف المحول</button>
+                </div>
             </div>
-            <div class="progress-text" id="progressText">Processing...</div>
+
+            <!-- القسم الجانبي -->
+            <div class="side-section">
+                <div class="side-convert-box">
+                    <h3 class="side-title">حساب المساحة من متر مربع إلى الوحدات العربية</h3>
+                    <div class="side-row">
+                        <input type="number" min="0" step="any" id="sideAreaInput" class="side-input" placeholder="أدخل المساحة بالمتر المربع">
+                        <button class="btn side-btn" id="sideConvertBtn">حساب</button>
+                    </div>
+                    <div class="side-result-container">
+                        <div class="side-result" id="sideResult"></div>
+                        <button class="copy-btn" id="copyBtn" style="display: none;">
+                            <span class="copy-icon">Copy</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div class="status" id="status"></div>
-
-        <button class="btn" id="convertBtn" disabled>تحويل KML</button>
-        <button class="btn" id="downloadBtn" disabled>تحميل الملف المحول</button>
 
         <div class="info">
             <h3>كيف يعمل:</h3>
@@ -69,7 +93,7 @@
             
             <h4>أمثلة على التحويل:</h4>
             <ul>
-                <li><code>Area: 5000 m²</code> → <code>Area: 5000 م<br>1 ف 4 ط 13 س</code></li>
+                <li><code>Area: 5000 m²</code> → <code>Area: (١ ف ٤ ط ١٣٫٦٠ س)</code></li>
                 <li><code>Building A</code> → <code>Building A</code> (النص العربي يبقى كما هو)</li>
                 <li><code>123 Main St</code> → <code>١٢٣ Main St</code></li>
             </ul>

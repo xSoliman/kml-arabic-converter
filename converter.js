@@ -319,21 +319,12 @@ class KMLConverter {
             const remainingSahm = totalSahm - (feddan * 24 * this.ARABIC_UNITS.QIRAT_TO_SAHM) - (remainingQirat * this.ARABIC_UNITS.QIRAT_TO_SAHM);
             const sahmFixed = remainingSahm.toFixed(2);
             
-            // Format with Arabic-Indic digits
+            // Format with Arabic-Indic digits - show all values even if zero
             const parts = [];
-            if (feddan > 0) {
-                parts.push(`${this.toArabicDigits(feddan)} ف`);
-            }
-            if (remainingQirat > 0) {
-                parts.push(`${this.toArabicDigits(remainingQirat)} ط`);
-            }
-            // Always show sahm, even if zero, with Arabic decimal separator
+            parts.push(`${this.toArabicDigits(feddan)} ف`);
+            parts.push(`${this.toArabicDigits(remainingQirat)} ط`);
             parts.push(`${this.toArabicDigits(sahmFixed)} س`);
             
-            // If no conversion possible, return null
-            if (parts.length === 0) {
-                return null;
-            }
             // Reverse the order to show feddan first, then qirat, then sahm
             return parts.reverse().join(' ');
         } catch (error) {
@@ -424,5 +415,69 @@ class KMLConverter {
 
 // Initialize the converter when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new KMLConverter();
+    const converter = new KMLConverter();
+
+    // منطق التحويل الجانبي
+    const sideInput = document.getElementById('sideAreaInput');
+    const sideBtn = document.getElementById('sideConvertBtn');
+    const sideResult = document.getElementById('sideResult');
+    const copyBtn = document.getElementById('copyBtn');
+    
+    if (sideBtn && sideInput && sideResult && copyBtn) {
+        sideBtn.addEventListener('click', () => {
+            const val = parseFloat(sideInput.value);
+            if (isNaN(val) || val <= 0) {
+                sideResult.textContent = 'يرجى إدخال قيمة صحيحة بالمتر المربع';
+                copyBtn.style.display = 'none';
+                return;
+            }
+            const arabic = converter.convertToArabicUnits(val);
+            if (!arabic) {
+                sideResult.textContent = 'لا يمكن التحويل لهذه القيمة';
+                copyBtn.style.display = 'none';
+                return;
+            }
+            // عرض النتيجة بدون أقواس في الواجهة
+            sideResult.textContent = '\u202B' + arabic + '\u202C';
+            copyBtn.style.display = 'block';
+        });
+        
+        // منطق النسخ
+        copyBtn.addEventListener('click', async () => {
+            try {
+                const textToCopy = sideResult.textContent;
+                await navigator.clipboard.writeText(textToCopy);
+                
+                // تغيير أيقونة الزر مؤقتاً للإشارة إلى النجاح
+                const originalIcon = copyBtn.querySelector('.copy-icon').textContent;
+                copyBtn.querySelector('.copy-icon').textContent = '✅';
+                copyBtn.classList.add('success');
+                
+                setTimeout(() => {
+                    copyBtn.querySelector('.copy-icon').textContent = originalIcon;
+                    copyBtn.classList.remove('success');
+                }, 1500);
+                
+            } catch (err) {
+                console.error('فشل في نسخ النص:', err);
+                // محاولة نسخ بديلة للمتصفحات القديمة
+                const textArea = document.createElement('textarea');
+                textArea.value = sideResult.textContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // تغيير أيقونة الزر مؤقتاً
+                const originalIcon = copyBtn.querySelector('.copy-icon').textContent;
+                copyBtn.querySelector('.copy-icon').textContent = '✅';
+                copyBtn.classList.add('success');
+                
+                setTimeout(() => {
+                    copyBtn.querySelector('.copy-icon').textContent = originalIcon;
+                    copyBtn.classList.remove('success');
+                }, 1500);
+            }
+        });
+    }
 }); 
