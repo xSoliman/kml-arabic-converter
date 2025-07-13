@@ -298,8 +298,8 @@ class KMLConverter {
             
             const arabicConversion = this.convertToArabicUnits(area);
             if (!arabicConversion) return '';
-            // Use normal parentheses ( ) with ARABIC LETTER MARK (U+061C) for correct RTL display
-            return '\u202B(\u061C' + arabicConversion + '\u061C)\u202C';
+            // Reverse parentheses for KML: )content(, with RLE/PDF for correct RTL display
+            return '\u202B)' + arabicConversion + '(\u202C';
         });
     }
 
