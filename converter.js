@@ -298,8 +298,8 @@ class KMLConverter {
             
             const arabicConversion = this.convertToArabicUnits(area);
             if (!arabicConversion) return '';
-            // Use Arabic-style parentheses ﴾ ﴿ and RLE/PDF for correct RTL display
-            return '\u202B\uFD3E' + arabicConversion + '\uFD3F\u202C';
+            // Use normal parentheses ( ) and RLE/PDF for correct RTL display
+            return '\u202B(' + arabicConversion + ')\u202C';
         });
     }
 
