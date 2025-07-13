@@ -299,8 +299,8 @@ class KMLConverter {
             const arabicConversion = this.convertToArabicUnits(area);
             if (!arabicConversion) return match;
             
-            // Replace the unit with Arabic "م" and add the conversion
-            return `${areaValue} م\n${arabicConversion}`;
+            // Replace the unit with Arabic "م" and add the conversion below, inside parentheses
+            return `${this.toArabicDigits(areaValue)} م\n(${arabicConversion})`;
         });
     }
 
@@ -308,36 +308,35 @@ class KMLConverter {
         try {
             // Convert to sahm first (smallest unit)
             const totalSahm = areaInM2 / this.ARABIC_UNITS.SAHM_TO_M2;
-            
             // Convert to larger units
             const totalQirat = totalSahm / this.ARABIC_UNITS.QIRAT_TO_SAHM;
             const totalFeddan = totalQirat / 24; // 1 feddan = 24 qirat
-            
+
             // Calculate whole units and remainders
             const feddan = Math.floor(totalFeddan);
             const remainingQirat = Math.floor(totalQirat - (feddan * 24));
-            const remainingSahm = Math.floor(totalSahm - (feddan * 24 * this.ARABIC_UNITS.QIRAT_TO_SAHM) - (remainingQirat * this.ARABIC_UNITS.QIRAT_TO_SAHM));
-            
+            // Sahm with 2 decimal places
+            const remainingSahm = totalSahm - (feddan * 24 * this.ARABIC_UNITS.QIRAT_TO_SAHM) - (remainingQirat * this.ARABIC_UNITS.QIRAT_TO_SAHM);
+            const sahmRounded = Math.round(remainingSahm * 100) / 100;
+
             // Format with Arabic-Indic digits
             const parts = [];
-            
             if (feddan > 0) {
                 parts.push(`${this.toArabicDigits(feddan)} ف`);
             }
             if (remainingQirat > 0) {
                 parts.push(`${this.toArabicDigits(remainingQirat)} ط`);
             }
-            if (remainingSahm > 0) {
-                parts.push(`${this.toArabicDigits(remainingSahm)} س`);
-            }
-            
+            // Always show sahm, even if zero, with 2 decimal places
+            parts.push(`${this.toArabicDigits(sahmRounded.toFixed(2))} س`);
+
             // If no conversion possible, return null
             if (parts.length === 0) {
                 return null;
             }
-            
-            // Reverse the order to show feddan first, then qirat, then sahm
-            return parts.reverse().join(' ');
+
+            // Order: feddan, qirat, sahm
+            return parts.join(' ');
         } catch (error) {
             console.error('Error converting to Arabic units:', error);
             return null;
