@@ -9,7 +9,7 @@ class KMLConverter {
         this.ARABIC_UNITS = {
             FEDDAN_TO_M2: 4200.83,
             QIRAT_TO_SAHM: 24,
-            SAHM_TO_M2: 7.293125
+            SAHM_TO_M2: 7.29
         };
         
         this.initializeCharMaps();
@@ -305,32 +305,40 @@ class KMLConverter {
 
     convertToArabicUnits(areaInM2) {
         try {
-            const SAHM_TO_M2 = this.ARABIC_UNITS.SAHM_TO_M2; // 7.293125
+            // Calculate sahm size from (4200.83)/(24*24)
+            const FEDDAN_TO_M2 = this.ARABIC_UNITS.FEDDAN_TO_M2; // 4200.83
             const QIRAT_TO_SAHM = this.ARABIC_UNITS.QIRAT_TO_SAHM; // 24
             const FEDDAN_TO_QIRAT = 24; // 24
             const SAHM_PER_FEDDAN = QIRAT_TO_SAHM * FEDDAN_TO_QIRAT; // 576
+            const SAHM_TO_M2 = FEDDAN_TO_M2 / SAHM_PER_FEDDAN;
 
             // 1. Convert m² to total sahm
             let totalSahm = areaInM2 / SAHM_TO_M2;
-
             // 2. Calculate feddan
             let feddan = Math.floor(totalSahm / SAHM_PER_FEDDAN);
-
             // 3. Remaining sahm after feddan
             let remainingSahmAfterFeddan = totalSahm - (feddan * SAHM_PER_FEDDAN);
-
             // 4. Calculate qirat
             let qirat = Math.floor(remainingSahmAfterFeddan / QIRAT_TO_SAHM);
-
-            // 5. Remaining sahm
+            // 5. Remaining sahm (full precision)
             let sahm = remainingSahmAfterFeddan - (qirat * QIRAT_TO_SAHM);
-            let sahmFixed = sahm.toFixed(2);
+            // Only round for display
+            let sahmDisplay = Math.round(sahm * 100) / 100;
+
+            // Debug: print all intermediate values
+            console.log(`DEBUG (formula): sahm size = ${SAHM_TO_M2}`);
+            console.log(`DEBUG (formula): totalSahm = ${totalSahm}`);
+            console.log(`DEBUG (formula): feddan = ${feddan}`);
+            console.log(`DEBUG (formula): remainingSahmAfterFeddan = ${remainingSahmAfterFeddan}`);
+            console.log(`DEBUG (formula): qirat = ${qirat}`);
+            console.log(`DEBUG (formula): sahm (full precision) = ${sahm}`);
+            console.log(`DEBUG (formula): sahm (display) = ${sahmDisplay}`);
 
             // Format with Arabic-Indic digits - show all values even if zero
             const parts = [];
             parts.push(`${this.toArabicDigits(feddan)} ف`);
             parts.push(`${this.toArabicDigits(qirat)} ط`);
-            parts.push(`${this.toArabicDigits(sahmFixed)} س`);
+            parts.push(`${this.toArabicDigits(sahmDisplay)} س`);
 
             // Reverse the order to show feddan first, then qirat, then sahm
             return parts.reverse().join(' ');
