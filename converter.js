@@ -301,16 +301,18 @@ class KMLConverter {
             const area = parseFloat(areaValue);
             if (isNaN(area) || area <= 0) return '';
             
-            const arabicConversion = this.convertToArabicUnits(area);
+            const arabicConversion = this.convertToArabicUnits(area, true);
             if (!arabicConversion) return '';
             // Reverse parentheses for KML: )content(, with RLE/PDF for correct RTL display
             return '\u202B)' + arabicConversion + '(\u202C';
         });
     }
 
-    convertToArabicUnits(areaInM2) {
+    convertToArabicUnits(areaInM2, forceArabic = true) {
         try {
-            const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : (window.localStorage && localStorage.getItem('lang')) || 'ar';
+            // Always use Arabic for KML conversion (forceArabic=true)
+            // Only use lang for UI/side conversion (forceArabic=false)
+            const lang = (!forceArabic && typeof getCurrentLang === 'function') ? getCurrentLang() : 'ar';
             // Constants
             const FEDDAN_TO_M2 = this.ARABIC_UNITS.FEDDAN_TO_M2;
             const QIRAT_TO_SAHM = this.ARABIC_UNITS.QIRAT_TO_SAHM;
@@ -324,8 +326,8 @@ class KMLConverter {
             let qirat = Math.floor(remainingSahmAfterFeddan / QIRAT_TO_SAHM);
             let sahm = remainingSahmAfterFeddan - (qirat * QIRAT_TO_SAHM);
             let sahmDisplay = Math.round(sahm * 100) / 100;
-            // Format output based on language
-            if (lang === 'en') {
+            // Always output Arabic units and numerals for KML
+            if (lang === 'en' && !forceArabic) {
                 const parts = [];
                 if (feddan > 0) parts.push(`${feddan}F`);
                 if (qirat > 0) parts.push(`${qirat}Q`);
@@ -550,7 +552,7 @@ class KMLConverter {
             let areaMatch = name.match(areaPattern) || description.match(areaPattern);
             if (areaMatch) {
                 areaM2 = areaMatch[1];
-                const arabic = this.convertToArabicUnits(parseFloat(areaM2));
+                const arabic = this.convertToArabicUnits(parseFloat(areaM2), true);
                 // Parse arabic units string: "س ... ط ... ف"
                 if (arabic) {
                     const parts = arabic.split(' ');
@@ -762,7 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 copyBtn.style.display = 'none';
                 return;
             }
-            const arabic = converter.convertToArabicUnits(val);
+            const arabic = converter.convertToArabicUnits(val, false);
             if (!arabic) {
                 sideResult.textContent = lang === 'ar' ? 'لا يمكن التحويل لهذه القيمة' : 'Cannot convert this value';
                 copyBtn.style.display = 'none';
