@@ -305,26 +305,33 @@ class KMLConverter {
 
     convertToArabicUnits(areaInM2) {
         try {
-            // Convert to sahm first (smallest unit)
-            const totalSahm = areaInM2 / this.ARABIC_UNITS.SAHM_TO_M2;
-            
-            // Convert to larger units
-            const totalQirat = totalSahm / this.ARABIC_UNITS.QIRAT_TO_SAHM;
-            const totalFeddan = totalQirat / 24; // 1 feddan = 24 qirat
-            
-            // Calculate whole units and remainders
-            const feddan = Math.floor(totalFeddan);
-            const remainingQirat = Math.floor(totalQirat - (feddan * 24));
-            // Sahm with 2 decimal places
-            const remainingSahm = totalSahm - (feddan * 24 * this.ARABIC_UNITS.QIRAT_TO_SAHM) - (remainingQirat * this.ARABIC_UNITS.QIRAT_TO_SAHM);
-            const sahmFixed = remainingSahm.toFixed(2);
-            
+            const SAHM_TO_M2 = this.ARABIC_UNITS.SAHM_TO_M2; // 7.293125
+            const QIRAT_TO_SAHM = this.ARABIC_UNITS.QIRAT_TO_SAHM; // 24
+            const FEDDAN_TO_QIRAT = 24; // 24
+            const SAHM_PER_FEDDAN = QIRAT_TO_SAHM * FEDDAN_TO_QIRAT; // 576
+
+            // 1. Convert m² to total sahm
+            let totalSahm = areaInM2 / SAHM_TO_M2;
+
+            // 2. Calculate feddan
+            let feddan = Math.floor(totalSahm / SAHM_PER_FEDDAN);
+
+            // 3. Remaining sahm after feddan
+            let remainingSahmAfterFeddan = totalSahm - (feddan * SAHM_PER_FEDDAN);
+
+            // 4. Calculate qirat
+            let qirat = Math.floor(remainingSahmAfterFeddan / QIRAT_TO_SAHM);
+
+            // 5. Remaining sahm
+            let sahm = remainingSahmAfterFeddan - (qirat * QIRAT_TO_SAHM);
+            let sahmFixed = sahm.toFixed(2);
+
             // Format with Arabic-Indic digits - show all values even if zero
             const parts = [];
             parts.push(`${this.toArabicDigits(feddan)} ف`);
-            parts.push(`${this.toArabicDigits(remainingQirat)} ط`);
+            parts.push(`${this.toArabicDigits(qirat)} ط`);
             parts.push(`${this.toArabicDigits(sahmFixed)} س`);
-            
+
             // Reverse the order to show feddan first, then qirat, then sahm
             return parts.reverse().join(' ');
         } catch (error) {
