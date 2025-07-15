@@ -51,6 +51,7 @@ class KMLConverter {
         const fileInput = document.getElementById('fileInput');
         const convertBtn = document.getElementById('convertBtn');
         const downloadBtn = document.getElementById('downloadBtn');
+        const excelBtn = document.getElementById('excelBtn');
 
         // File selection
         uploadArea.addEventListener('click', () => fileInput.click());
@@ -80,6 +81,9 @@ class KMLConverter {
 
         // Download button
         downloadBtn.addEventListener('click', () => this.downloadFile());
+
+        // Excel export button
+        excelBtn.addEventListener('click', () => this.exportExcel());
     }
 
     handleFileSelect(event) {
@@ -123,6 +127,7 @@ class KMLConverter {
     enableConvertButton() {
         document.getElementById('convertBtn').disabled = false;
         document.getElementById('downloadBtn').disabled = true;
+        document.getElementById('excelBtn').disabled = false;
     }
 
     async convertFile() {
@@ -305,45 +310,43 @@ class KMLConverter {
 
     convertToArabicUnits(areaInM2) {
         try {
-            // Calculate sahm size from (4200.83)/(24*24)
-            const FEDDAN_TO_M2 = this.ARABIC_UNITS.FEDDAN_TO_M2; // 4200.83
-            const QIRAT_TO_SAHM = this.ARABIC_UNITS.QIRAT_TO_SAHM; // 24
-            const FEDDAN_TO_QIRAT = 24; // 24
-            const SAHM_PER_FEDDAN = QIRAT_TO_SAHM * FEDDAN_TO_QIRAT; // 576
+            const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : (window.localStorage && localStorage.getItem('lang')) || 'ar';
+            // Constants
+            const FEDDAN_TO_M2 = this.ARABIC_UNITS.FEDDAN_TO_M2;
+            const QIRAT_TO_SAHM = this.ARABIC_UNITS.QIRAT_TO_SAHM;
+            const FEDDAN_TO_QIRAT = 24;
+            const SAHM_PER_FEDDAN = QIRAT_TO_SAHM * FEDDAN_TO_QIRAT;
             const SAHM_TO_M2 = FEDDAN_TO_M2 / SAHM_PER_FEDDAN;
-
-            // 1. Convert m² to total sahm
+            // Calculations
             let totalSahm = areaInM2 / SAHM_TO_M2;
-            // 2. Calculate feddan
             let feddan = Math.floor(totalSahm / SAHM_PER_FEDDAN);
-            // 3. Remaining sahm after feddan
             let remainingSahmAfterFeddan = totalSahm - (feddan * SAHM_PER_FEDDAN);
-            // 4. Calculate qirat
             let qirat = Math.floor(remainingSahmAfterFeddan / QIRAT_TO_SAHM);
-            // 5. Remaining sahm (full precision)
             let sahm = remainingSahmAfterFeddan - (qirat * QIRAT_TO_SAHM);
-            // Only round for display
             let sahmDisplay = Math.round(sahm * 100) / 100;
-
-            // Debug: print all intermediate values
-            console.log(`DEBUG (formula): sahm size = ${SAHM_TO_M2}`);
-            console.log(`DEBUG (formula): totalSahm = ${totalSahm}`);
-            console.log(`DEBUG (formula): feddan = ${feddan}`);
-            console.log(`DEBUG (formula): remainingSahmAfterFeddan = ${remainingSahmAfterFeddan}`);
-            console.log(`DEBUG (formula): qirat = ${qirat}`);
-            console.log(`DEBUG (formula): sahm (full precision) = ${sahm}`);
-            console.log(`DEBUG (formula): sahm (display) = ${sahmDisplay}`);
-
-            // Format with Arabic-Indic digits - show all values even if zero
-            const parts = [];
-            parts.push(`${this.toArabicDigits(feddan)} ف`);
-            parts.push(`${this.toArabicDigits(qirat)} ط`);
-            parts.push(`${this.toArabicDigits(sahmDisplay)} س`);
-
-            // Reverse the order to show feddan first, then qirat, then sahm
-            return parts.reverse().join(' ');
+            // Format output based on language
+            if (lang === 'en') {
+                const parts = [];
+                if (feddan > 0) parts.push(`${feddan}F`);
+                if (qirat > 0) parts.push(`${qirat}Q`);
+                if (sahmDisplay > 0 || parts.length === 0) {
+                    parts.push(`${sahmDisplay}S`);
+                }
+                return parts.join('  '); // two spaces between units
+            } else {
+                // Arabic-Indic digits, Arabic letters
+                const toArabicDigits = (number) => number.toString().replace(/[0-9.]/g, (char) => {
+                    if (char === '.') return '٫';
+                    return this.numberMap.get(char) || char;
+                });
+                // Order: Sahm (س), Qirat (ط), Feddan (ف)
+                const parts = [];
+                if (sahmDisplay > 0 || (feddan === 0 && qirat === 0)) parts.push(`${toArabicDigits(sahmDisplay)}س`);
+                if (qirat > 0) parts.push(`${toArabicDigits(qirat)}ط`);
+                if (feddan > 0) parts.push(`${toArabicDigits(feddan)}ف`);
+                return parts.join(' ');
+            }
         } catch (error) {
-            console.error('Error converting to Arabic units:', error);
             return null;
         }
     }
@@ -392,6 +395,7 @@ class KMLConverter {
     disableButtons() {
         document.getElementById('convertBtn').disabled = true;
         document.getElementById('downloadBtn').disabled = true;
+        document.getElementById('excelBtn').disabled = true;
     }
 
     enableDownloadButton() {
@@ -417,6 +421,178 @@ class KMLConverter {
         URL.revokeObjectURL(url);
     }
 
+    // --- Excel Export Feature ---
+    exportExcel() {
+        if (!this.selectedFile) {
+            this.showStatus('يرجى اختيار ملف أولاً.', 'error');
+            return;
+        }
+        this.readFile(this.selectedFile).then(content => {
+            const placemarks = this.extractPlacemarksAdvanced(content);
+            if (!placemarks.length) {
+                this.showStatus('لم يتم العثور على بيانات في الملف.', 'error');
+                return;
+            }
+            // Determine max number of coordinate pairs
+            let maxCoords = 0;
+            placemarks.forEach(pm => {
+                if (pm.coordsArray.length > maxCoords) maxCoords = pm.coordsArray.length;
+            });
+            // Build header rows
+            const header1 = [
+                'رقم القطعة',
+                'المساحة بالمتر المربع',
+                'المساحة', '', '', // سهم, قيراط, فدان (merged under المساحة)
+            ];
+            for (let i = 0; i < maxCoords; i++) {
+                header1.push('الاحداثيات');
+                header1.push('');
+            }
+            const header2 = [
+                '', '', 'سهم', 'قيراط', 'فدان'
+            ];
+            for (let i = 0; i < maxCoords; i++) {
+                header2.push('N');
+                header2.push('E');
+            }
+            // Data rows
+            const data = [header1, header2];
+            placemarks.forEach((pm, idx) => {
+                const row = [
+                    (idx + 1).toString(),
+                    pm.areaM2,
+                    pm.sahm,
+                    pm.qirat,
+                    pm.feddan
+                ];
+                for (let i = 0; i < maxCoords; i++) {
+                    if (pm.coordsArray[i]) {
+                        row.push(pm.coordsArray[i].lat);
+                        row.push(pm.coordsArray[i].lng);
+                    } else {
+                        row.push('');
+                        row.push('');
+                    }
+                }
+                data.push(row);
+            });
+            // Create worksheet and workbook
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            // Merge cells for 'المساحة' header
+            ws['!merges'] = ws['!merges'] || [];
+            ws['!merges'].push({ s: { r:0, c:2 }, e: { r:0, c:4 } });
+            // Merge each 'الاحداثيات' header
+            for (let i = 0; i < maxCoords; i++) {
+                ws['!merges'].push({ s: { r:0, c:5 + i*2 }, e: { r:0, c:6 + i*2 } });
+            }
+            // Style all headers (bold, centered)
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = 0; R <= 1; ++R) {
+                for (let C = 0; C <= range.e.c; ++C) {
+                    const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+                    if (cell) {
+                        cell.s = {
+                            font: { bold: true },
+                            alignment: { horizontal: 'center', vertical: 'center' },
+                            border: { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} }
+                        };
+                    }
+                }
+            }
+            // Style all data rows (centered)
+            for (let R = 2; R <= range.e.r; ++R) {
+                for (let C = 0; C <= range.e.c; ++C) {
+                    const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+                    if (cell) {
+                        cell.s = {
+                            alignment: { horizontal: 'center', vertical: 'center' },
+                            border: { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} }
+                        };
+                    }
+                }
+            }
+            // Set column widths for better appearance
+            ws['!cols'] = [
+                { wch: 12 }, // رقم القطعة
+                { wch: 18 }, // المساحة بالمتر المربع
+                { wch: 8 },  // سهم
+                { wch: 8 },  // قيراط
+                { wch: 8 },  // فدان
+            ];
+            for (let i = 0; i < maxCoords; i++) {
+                ws['!cols'].push({ wch: 12 }); // N
+                ws['!cols'].push({ wch: 12 }); // E
+            }
+            // Create workbook and export
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Placemarks');
+            XLSX.writeFile(wb, this.selectedFile.name.replace(/\.kml$/i, '_placemarks.xlsx'));
+            this.showStatus('تم تصدير البيانات إلى Excel بنجاح!', 'success');
+        }).catch(() => {
+            this.showStatus('حدث خطأ أثناء قراءة الملف.', 'error');
+        });
+    }
+
+    extractPlacemarksAdvanced(content) {
+        // Parse KML XML
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(content, 'text/xml');
+        const placemarkNodes = xml.getElementsByTagName('Placemark');
+        const placemarks = [];
+        for (let i = 0; i < placemarkNodes.length; i++) {
+            const pm = placemarkNodes[i];
+            // Area extraction
+            let areaM2 = '';
+            let sahm = '', qirat = '', feddan = '';
+            const name = pm.getElementsByTagName('name')[0]?.textContent || '';
+            const description = pm.getElementsByTagName('description')[0]?.textContent || '';
+            const areaPattern = /(\d+(?:\.\d+)?)\s*(m\^?2|m%%142|m²|م²|م\^?2|m2|م2)/i;
+            let areaMatch = name.match(areaPattern) || description.match(areaPattern);
+            if (areaMatch) {
+                areaM2 = areaMatch[1];
+                const arabic = this.convertToArabicUnits(parseFloat(areaM2));
+                // Parse arabic units string: "س ... ط ... ف"
+                if (arabic) {
+                    const parts = arabic.split(' ');
+                    sahm = parts.find(p => p.includes('س')) || '';
+                    qirat = parts.find(p => p.includes('ط')) || '';
+                    feddan = parts.find(p => p.includes('ف')) || '';
+                }
+            }
+            // Coordinates extraction (support Point and Polygon)
+            let coordsArray = [];
+            // Point
+            const point = pm.getElementsByTagName('Point')[0];
+            if (point) {
+                const coordsText = point.getElementsByTagName('coordinates')[0]?.textContent.trim() || '';
+                if (coordsText) {
+                    const [lng, lat] = coordsText.split(',').map(x => x.trim());
+                    coordsArray.push({ lat, lng });
+                }
+            }
+            // Polygon
+            const polygon = pm.getElementsByTagName('Polygon')[0];
+            if (polygon) {
+                const coordsText = polygon.getElementsByTagName('coordinates')[0]?.textContent.trim() || '';
+                if (coordsText) {
+                    const pairs = coordsText.split(/\s+/);
+                    pairs.forEach(pair => {
+                        const [lng, lat] = pair.split(',').map(x => x.trim());
+                        if (lat && lng) coordsArray.push({ lat, lng });
+                    });
+                }
+            }
+            placemarks.push({
+                areaM2,
+                sahm,
+                qirat,
+                feddan,
+                coordsArray
+            });
+        }
+        return placemarks;
+    }
+
     showStatus(message, type) {
         const status = document.getElementById('status');
         status.textContent = message;
@@ -428,66 +604,199 @@ class KMLConverter {
     }
 }
 
-// Initialize the converter when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    const converter = new KMLConverter();
+// --- Language Switch Logic ---
+const translations = {
+    ar: {
+        title: 'محول KML العربي',
+        subtitle: 'تحويل الحروف الإنجليزية إلى العربية في ملفات KML',
+        uploadText: 'انقر لاختيار أو اسحب وأفلت ملف KML',
+        convertBtn: 'تحويل KML',
+        downloadBtn: 'تحميل الملف المحول',
+        excelBtn: 'تحويل لملف excel وتحميله',
+        areaOption: 'تحويل وحدات المساحة',
+        areaOptionSmall: 'تحويل (م²) إلى الوحدات العربية (سهم، قيراط، فدان)',
+        progress: 'جاري المعالجة...',
+        statusNoFile: 'يرجى اختيار ملف أولاً.',
+        statusNoKML: 'يرجى اختيار ملف KML صحيح.',
+        statusSuccess: 'تم تحويل الملف بنجاح!',
+        statusNoContent: 'لا يوجد محتوى محول للتحميل.',
+        sideTitle: 'حساب المساحة من متر مربع إلى الوحدات العربية',
+        sidePlaceholder: 'أدخل المساحة بالمتر المربع',
+        sideBtn: 'حساب',
+        copy: 'نسخ',
+        infoHow: 'كيف يعمل:',
+        infoStep1: 'الخطوة الأولى: قم برفع ملف KML يحتوي على أسماء المواقع باللغة الإنجليزية',
+        infoStep2: 'الخطوة الثانية: اختر تحويل وحدات المساحة (اختياري) إذا كنت تريد تحويل وحدات المساحة إلى الوحدات العربية',
+        infoStep3: 'الخطوة الثالثة: اضغط على "تحويل KML" لبدء عملية التحويل',
+        infoStep4: 'الخطوة الرابعة: قم بتحميل ملف KML المحول جاهز لـ Google Earth',
+        infoFeatures: 'ميزات التحويل:',
+        infoF1: 'تحويل الحروف الإنجليزية إلى ما يعادلها في لوحة المفاتيح العربية',
+        infoF2: 'الحفاظ على النص العربي الموجود كما هو دون تغيير',
+        infoF3: 'تحويل الأرقام الغربية (1,2,3) إلى الأرقام العربية الشرقية (١,٢,٣)',
+        infoF4: 'تحويل الفواصل (,) إلى (و) والحفاظ على النقاط (.) للأرقام العشرية',
+        infoF5: 'تحويل وحدات المساحة: تحويل (م²) إلى الوحدات العربية (سهم، قيراط، فدان)',
+        infoExamples: 'أمثلة على التحويل:',
+        infoE1: 'Area: 5000 m² → Area: (١ ف ٤ ط ١٣٫٦٠ س)',
+        infoE2: 'Building A → Building A (النص العربي يبقى كما هو)',
+        infoE3: '123 Main St → ١٢٣ Main St',
+        langBtn: '🌐 English',
+        dir: 'rtl',
+        lang: 'ar',
+    },
+    en: {
+        title: 'KML Arabic Converter',
+        subtitle: 'Convert English letters to Arabic in KML files',
+        uploadText: 'Click to select or drag & drop a KML file',
+        convertBtn: 'Convert KML',
+        downloadBtn: 'Download Converted File',
+        excelBtn: 'Convert to Excel & Download',
+        areaOption: 'Convert Area Units',
+        areaOptionSmall: 'Convert (m²) to Arabic units (Sahm, Qirat, Feddan)',
+        progress: 'Processing...',
+        statusNoFile: 'Please select a file first.',
+        statusNoKML: 'Please select a valid KML file.',
+        statusSuccess: 'File converted successfully!',
+        statusNoContent: 'No converted content to download.',
+        sideTitle: 'Convert Area from m² to Arabic Units',
+        sidePlaceholder: 'Enter area in square meters',
+        sideBtn: 'Convert',
+        copy: 'Copy',
+        infoHow: 'How it works:',
+        infoStep1: 'Step 1: Upload a KML file with place names in English',
+        infoStep2: 'Step 2: Choose area unit conversion (optional) if you want to convert area units to Arabic units',
+        infoStep3: 'Step 3: Click "Convert KML" to start the conversion',
+        infoStep4: 'Step 4: Download the converted KML file ready for Google Earth',
+        infoFeatures: 'Conversion Features:',
+        infoF1: 'Convert English letters to their Arabic keyboard equivalents',
+        infoF2: 'Keep existing Arabic text unchanged',
+        infoF3: 'Convert Western digits (1,2,3) to Eastern Arabic digits (١,٢,٣)',
+        infoF4: 'Convert commas (,) to (و) and keep dots (.) for decimals',
+        infoF5: 'Area unit conversion: Convert (m²) to Arabic units (Sahm, Qirat, Feddan)',
+        infoExamples: 'Conversion Examples:',
+        infoE1: 'Area: 5000 m² → Area: (١ ف ٤ ط ١٣٫٦٠ س)',
+        infoE2: 'Building A → Building A (Arabic text remains unchanged)',
+        infoE3: '123 Main St → ١٢٣ Main St',
+        langBtn: '🌐 العربية',
+        dir: 'ltr',
+        lang: 'en',
+    }
+};
 
-    // منطق التحويل الجانبي
+function setLanguage(lang) {
+    const t = translations[lang];
+    document.documentElement.lang = t.lang;
+    document.documentElement.dir = t.dir;
+    document.querySelector('.main-title').textContent = t.title;
+    document.querySelector('.subtitle').textContent = t.subtitle;
+    document.querySelector('.upload-text').textContent = t.uploadText;
+    document.getElementById('convertBtn').textContent = t.convertBtn;
+    document.getElementById('downloadBtn').textContent = t.downloadBtn;
+    document.getElementById('excelBtn').textContent = t.excelBtn;
+    document.querySelector('.option-text strong').textContent = t.areaOption;
+    document.querySelector('.option-text small').textContent = t.areaOptionSmall;
+    document.getElementById('progressText').textContent = t.progress;
+    document.querySelector('.side-title').textContent = t.sideTitle;
+    document.getElementById('sideAreaInput').placeholder = t.sidePlaceholder;
+    document.getElementById('sideConvertBtn').textContent = t.sideBtn;
+    document.querySelector('.copy-icon').textContent = t.copy;
+    // Update language toggle UI
+    const langAr = document.getElementById('langAr');
+    const langEn = document.getElementById('langEn');
+    if (lang === 'ar') {
+        langAr.classList.add('active');
+        langEn.classList.remove('active');
+    } else {
+        langAr.classList.remove('active');
+        langEn.classList.add('active');
+    }
+    document.getElementById('langSwitchBtn').setAttribute('aria-label', lang === 'ar' ? 'تبديل اللغة إلى الإنجليزية' : 'Switch language to Arabic');
+    // Info section
+    const info = document.querySelector('.info');
+    info.querySelector('h3').textContent = t.infoHow;
+    const infoLis = info.querySelectorAll('ul')[0].querySelectorAll('li');
+    infoLis[0].innerHTML = `<strong>${t.infoStep1.split(':')[0]}:</strong> ${t.infoStep1.split(':')[1]}`;
+    infoLis[1].innerHTML = `<strong>${t.infoStep2.split(':')[0]}:</strong> ${t.infoStep2.split(':')[1]}`;
+    infoLis[2].innerHTML = `<strong>${t.infoStep3.split(':')[0]}:</strong> ${t.infoStep3.split(':')[1]}`;
+    infoLis[3].innerHTML = `<strong>${t.infoStep4.split(':')[0]}:</strong> ${t.infoStep4.split(':')[1]}`;
+    info.querySelector('h4').textContent = t.infoFeatures;
+    const featuresLis = info.querySelectorAll('ul')[1].querySelectorAll('li');
+    featuresLis[0].textContent = t.infoF1;
+    featuresLis[1].textContent = t.infoF2;
+    featuresLis[2].textContent = t.infoF3;
+    featuresLis[3].textContent = t.infoF4;
+    featuresLis[4].innerHTML = `<strong>${t.infoF5.split(':')[0]}:</strong> ${t.infoF5.split(':')[1]}`;
+    info.querySelectorAll('h4')[1].textContent = t.infoExamples;
+    const examplesLis = info.querySelectorAll('ul')[2].querySelectorAll('li');
+    examplesLis[0].innerHTML = `<code>${t.infoE1.split('→')[0].trim()}</code> → <code>${t.infoE1.split('→')[1].trim()}</code>`;
+    examplesLis[1].innerHTML = `<code>${t.infoE2.split('→')[0].trim()}</code> → <code>${t.infoE2.split('→')[1].trim()}</code>`;
+    examplesLis[2].innerHTML = `<code>${t.infoE3.split('→')[0].trim()}</code> → <code>${t.infoE3.split('→')[1].trim()}</code>`;
+}
+
+function getCurrentLang() {
+    return localStorage.getItem('lang') || 'ar';
+}
+
+function toggleLang() {
+    const current = getCurrentLang();
+    const next = current === 'ar' ? 'en' : 'ar';
+    localStorage.setItem('lang', next);
+    setLanguage(next);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setLanguage(getCurrentLang());
+    document.getElementById('langSwitchBtn').addEventListener('click', toggleLang);
+
+    const converter = new KMLConverter();
+    // Side conversion logic (area conversion box)
     const sideInput = document.getElementById('sideAreaInput');
     const sideBtn = document.getElementById('sideConvertBtn');
     const sideResult = document.getElementById('sideResult');
     const copyBtn = document.getElementById('copyBtn');
-    
     if (sideBtn && sideInput && sideResult && copyBtn) {
         sideBtn.addEventListener('click', () => {
             const val = parseFloat(sideInput.value);
+            const lang = getCurrentLang();
             if (isNaN(val) || val <= 0) {
-                sideResult.textContent = 'يرجى إدخال قيمة صحيحة بالمتر المربع';
+                sideResult.textContent = lang === 'ar' ? 'يرجى إدخال قيمة صحيحة بالمتر المربع' : 'Please enter a valid value in square meters';
                 copyBtn.style.display = 'none';
                 return;
             }
             const arabic = converter.convertToArabicUnits(val);
             if (!arabic) {
-                sideResult.textContent = 'لا يمكن التحويل لهذه القيمة';
+                sideResult.textContent = lang === 'ar' ? 'لا يمكن التحويل لهذه القيمة' : 'Cannot convert this value';
                 copyBtn.style.display = 'none';
                 return;
             }
-            // عرض النتيجة بدون أقواس في الواجهة
+            // Show result without parentheses in UI
             sideResult.textContent = '\u202B' + arabic + '\u202C';
             copyBtn.style.display = 'block';
         });
-        
-        // منطق النسخ
+        // Copy logic
         copyBtn.addEventListener('click', async () => {
             try {
                 const textToCopy = sideResult.textContent;
                 await navigator.clipboard.writeText(textToCopy);
-                
-                // تغيير أيقونة الزر مؤقتاً للإشارة إلى النجاح
+                // Change button icon temporarily to indicate success
                 const originalIcon = copyBtn.querySelector('.copy-icon').textContent;
                 copyBtn.querySelector('.copy-icon').textContent = '✅';
                 copyBtn.classList.add('success');
-                
                 setTimeout(() => {
                     copyBtn.querySelector('.copy-icon').textContent = originalIcon;
                     copyBtn.classList.remove('success');
                 }, 1500);
-                
             } catch (err) {
-                console.error('فشل في نسخ النص:', err);
-                // محاولة نسخ بديلة للمتصفحات القديمة
+                // Fallback for older browsers
                 const textArea = document.createElement('textarea');
                 textArea.value = sideResult.textContent;
                 document.body.appendChild(textArea);
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                
-                // تغيير أيقونة الزر مؤقتاً
+                // Change button icon temporarily
                 const originalIcon = copyBtn.querySelector('.copy-icon').textContent;
                 copyBtn.querySelector('.copy-icon').textContent = '✅';
                 copyBtn.classList.add('success');
-                
                 setTimeout(() => {
                     copyBtn.querySelector('.copy-icon').textContent = originalIcon;
                     copyBtn.classList.remove('success');
@@ -496,3 +805,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 }); 
+
+// Patch KMLConverter to use translations for status/progress
+const origShowStatus = KMLConverter.prototype.showStatus;
+KMLConverter.prototype.showStatus = function(message, type) {
+    const lang = getCurrentLang();
+    // Map known messages to translation keys
+    const map = {
+        'يرجى اختيار ملف أولاً.': translations[lang].statusNoFile,
+        'يرجى اختيار ملف KML صحيح.': translations[lang].statusNoKML,
+        'تم تحويل الملف بنجاح!': translations[lang].statusSuccess,
+        'لا يوجد محتوى محول للتحميل.': translations[lang].statusNoContent
+    };
+    if (map[message]) message = map[message];
+    origShowStatus.call(this, message, type);
+};
+const origShowProgress = KMLConverter.prototype.updateProgress;
+KMLConverter.prototype.updateProgress = function(percentage) {
+    const lang = getCurrentLang();
+    const progressText = document.getElementById('progressText');
+    progressText.textContent = `${translations[lang].progress} ${Math.round(percentage)}%`;
+    origShowProgress.call(this, percentage);
+}; 

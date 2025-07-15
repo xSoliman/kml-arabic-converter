@@ -10,6 +10,12 @@
 </head>
 <body>
     <div class="container">
+        <button id="langSwitchBtn" class="lang-switch-btn" aria-label="تبديل اللغة">
+            <div class="lang-switch-toggle">
+                <span class="lang-switch-option" id="langAr">العربية</span>
+                <span class="lang-switch-option" id="langEn">English</span>
+            </div>
+        </button>
         <h1 class="main-title">محول KML العربي</h1>
         <p class="subtitle">تحويل الحروف الإنجليزية إلى العربية في ملفات KML</p>
 
@@ -52,6 +58,7 @@
                 <div class="button-group">
                     <button class="btn" id="convertBtn" disabled>تحويل KML</button>
                     <button class="btn" id="downloadBtn" disabled>تحميل الملف المحول</button>
+                    <button class="btn" id="excelBtn" disabled>تحويل لملف excel وتحميله</button>
                 </div>
             </div>
 
@@ -100,6 +107,7 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="converter.js"></script>
 </body>
 </html> 
