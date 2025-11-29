@@ -588,4 +588,51 @@ body {
         padding: 5px 10px;
         font-size: 0.95em;
     }
+}
+
+/* New Converter Styles */
+.converter-group {
+    margin-bottom: 15px;
+}
+
+.converter-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #4a5568;
+    font-size: 0.9em;
+}
+
+.converter-divider {
+    height: 1px;
+    background-color: #e2e8f0;
+    margin: 15px 0;
+}
+
+.fqs-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.fqs-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fqs-item input {
+    width: 100%;
+    text-align: center;
+}
+
+.fqs-item span {
+    font-size: 0.8em;
+    color: #718096;
+    margin-top: 2px;
+}
+
+/* Adjust side-input to be full width in groups */
+.converter-group .side-input {
+    width: 100%;
 } 

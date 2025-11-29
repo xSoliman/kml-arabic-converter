@@ -4,14 +4,14 @@ class KMLConverter {
         this.charMapCapital = new Map();
         this.selectedFile = null;
         this.convertedContent = null;
-        
+
         // Arabic unit conversion constants
         this.ARABIC_UNITS = {
             FEDDAN_TO_M2: 4200.83,
             QIRAT_TO_SAHM: 24,
             SAHM_TO_M2: 7.29
         };
-        
+
         this.initializeCharMaps();
         this.initializeEventListeners();
     }
@@ -19,10 +19,10 @@ class KMLConverter {
     initializeCharMaps() {
         // English lowercase characters
         const en = ['`', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 'z', 'x', 'c', 'v', 'n', 'm', ',', '.', '/'];
-        
+
         // English uppercase characters
         const enCapital = ['~', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', 'Z', 'X', 'C', 'V', 'N', 'M', '<', '>', '?'];
-        
+
         // Arabic characters (same mapping as in the C# code)
         const ar = ['ذ', 'ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح', 'ج', 'د', 'ش', 'س', 'ي', 'ب', 'ل', 'ا', 'ت', 'ن', 'م', 'ك', 'ط', 'ئ', 'ء', 'ؤ', 'ر', 'ى', 'ة', 'و', 'ز', 'ظ'];
 
@@ -142,7 +142,7 @@ class KMLConverter {
 
             const content = await this.readFile(this.selectedFile);
             this.convertedContent = this.processKML(content);
-            
+
             this.hideProgress();
             this.enableDownloadButton();
             this.showStatus('تم تحويل الملف بنجاح!', 'success');
@@ -173,11 +173,11 @@ class KMLConverter {
         let outputContent = content.replace(pattern, (match, prefix, name, suffix) => {
             const convertedName = this.convertName(name);
             conversionCount++;
-            
+
             // Update progress
             processedLength += match.length;
             this.updateProgress((processedLength / totalLength) * 50);
-            
+
             return prefix + convertedName + suffix;
         });
 
@@ -185,16 +185,16 @@ class KMLConverter {
         if (conversionCount === 0) {
             this.updateProgress(50);
             processedLength = 0;
-            
+
             pattern = /(<Placemark>\s*<name>)([^<]+)(<\/name>)/g;
             outputContent = content.replace(pattern, (match, prefix, name, suffix) => {
                 const convertedName = this.convertName(name);
                 conversionCount++;
-                
+
                 // Update progress for second 50%
                 processedLength += match.length;
                 this.updateProgress(50 + (processedLength / totalLength) * 50);
-                
+
                 return prefix + convertedName + suffix;
             });
         } else {
@@ -221,7 +221,7 @@ class KMLConverter {
 
         // Check if Arabic unit conversion is enabled
         const arabicUnitsEnabled = document.getElementById('arabicUnitsCheckbox').checked;
-        
+
         // Process area conversion if enabled
         if (arabicUnitsEnabled) {
             name = this.processAreaConversion(name);
@@ -296,11 +296,11 @@ class KMLConverter {
         // Regex to match area patterns like "5000 m²", "5000 m^2", "5000 m%%142", etc.
         // Also matches variations with spaces and different formats
         const areaPattern = /(\d+(?:\.\d+)?)\s*(m\^?2|m%%142|m²|م²|م\^?2|m2|م2)/gi;
-        
+
         return name.replace(areaPattern, (match, areaValue, unit) => {
             const area = parseFloat(areaValue);
             if (isNaN(area) || area <= 0) return '';
-            
+
             const arabicConversion = this.convertToArabicUnits(area, true);
             if (!arabicConversion) return '';
             // Reverse parentheses for KML: )content(, with RLE/PDF for correct RTL display
@@ -380,7 +380,7 @@ class KMLConverter {
     updateProgress(percentage) {
         const progressFill = document.getElementById('progressFill');
         const progressText = document.getElementById('progressText');
-        
+
         progressFill.style.width = `${Math.min(percentage, 100)}%`;
         progressText.textContent = `جاري المعالجة... ${Math.round(percentage)}%`;
     }
@@ -412,14 +412,14 @@ class KMLConverter {
 
         const blob = new Blob([this.convertedContent], { type: 'application/vnd.google-earth.kml+xml' });
         const url = URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = this.selectedFile.name.replace('.kml', '_converted.kml');
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        
+
         URL.revokeObjectURL(url);
     }
 
@@ -482,10 +482,10 @@ class KMLConverter {
             const ws = XLSX.utils.aoa_to_sheet(data);
             // Merge cells for 'المساحة' header
             ws['!merges'] = ws['!merges'] || [];
-            ws['!merges'].push({ s: { r:0, c:2 }, e: { r:0, c:4 } });
+            ws['!merges'].push({ s: { r: 0, c: 2 }, e: { r: 0, c: 4 } });
             // Merge each 'الاحداثيات' header
             for (let i = 0; i < maxCoords; i++) {
-                ws['!merges'].push({ s: { r:0, c:5 + i*2 }, e: { r:0, c:6 + i*2 } });
+                ws['!merges'].push({ s: { r: 0, c: 5 + i * 2 }, e: { r: 0, c: 6 + i * 2 } });
             }
             // Style all headers (bold, centered)
             const range = XLSX.utils.decode_range(ws['!ref']);
@@ -496,7 +496,7 @@ class KMLConverter {
                         cell.s = {
                             font: { bold: true },
                             alignment: { horizontal: 'center', vertical: 'center' },
-                            border: { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} }
+                            border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } }
                         };
                     }
                 }
@@ -508,7 +508,7 @@ class KMLConverter {
                     if (cell) {
                         cell.s = {
                             alignment: { horizontal: 'center', vertical: 'center' },
-                            border: { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} }
+                            border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } }
                         };
                     }
                 }
@@ -623,9 +623,14 @@ const translations = {
         statusSuccess: 'تم تحويل الملف بنجاح!',
         statusNoContent: 'لا يوجد محتوى محول للتحميل.',
         sideTitle: 'حساب المساحة من متر مربع إلى الوحدات العربية',
-        sidePlaceholder: 'أدخل المساحة بالمتر المربع',
-        sideBtn: 'حساب',
-        copy: 'نسخ',
+        sideLabelM2: 'متر مربع (m²)',
+        sideLabelDecimal: 'فدان عشري',
+        sideLabelArabic: 'الوحدات العربية',
+        sidePlaceholderM2: 'المساحة بالمتر المربع',
+        sidePlaceholderDecimal: 'فدان (عشري)',
+        sidePlaceholderFeddan: 'فدان',
+        sidePlaceholderQirat: 'قيراط',
+        sidePlaceholderSahm: 'سهم',
         infoHow: 'كيف يعمل:',
         infoStep1: 'الخطوة الأولى: قم برفع ملف KML يحتوي على أسماء المواقع باللغة الإنجليزية',
         infoStep2: 'الخطوة الثانية: اختر تحويل وحدات المساحة (اختياري) إذا كنت تريد تحويل وحدات المساحة إلى الوحدات العربية',
@@ -660,9 +665,14 @@ const translations = {
         statusSuccess: 'File converted successfully!',
         statusNoContent: 'No converted content to download.',
         sideTitle: 'Convert Area from m² to Arabic Units',
-        sidePlaceholder: 'Enter area in square meters',
-        sideBtn: 'Convert',
-        copy: 'Copy',
+        sideLabelM2: 'Square Meter (m²)',
+        sideLabelDecimal: 'Decimal Feddan',
+        sideLabelArabic: 'Arabic Units',
+        sidePlaceholderM2: 'Area in m²',
+        sidePlaceholderDecimal: 'Feddan (Decimal)',
+        sidePlaceholderFeddan: 'Feddan',
+        sidePlaceholderQirat: 'Qirat',
+        sidePlaceholderSahm: 'Sahm',
         infoHow: 'How it works:',
         infoStep1: 'Step 1: Upload a KML file with place names in English',
         infoStep2: 'Step 2: Choose area unit conversion (optional) if you want to convert area units to Arabic units',
@@ -698,9 +708,36 @@ function setLanguage(lang) {
     document.querySelector('.option-text small').textContent = t.areaOptionSmall;
     document.getElementById('progressText').textContent = t.progress;
     document.querySelector('.side-title').textContent = t.sideTitle;
-    document.getElementById('sideAreaInput').placeholder = t.sidePlaceholder;
-    document.getElementById('sideConvertBtn').textContent = t.sideBtn;
-    document.querySelector('.copy-icon').textContent = t.copy;
+
+    // Update placeholders and labels for new inputs
+    const inputM2 = document.getElementById('inputM2');
+    const inputDecimalFeddan = document.getElementById('inputDecimalFeddan');
+    const inputFeddan = document.getElementById('inputFeddan');
+    const inputQirat = document.getElementById('inputQirat');
+    const inputSahm = document.getElementById('inputSahm');
+
+    if (inputM2) {
+        inputM2.placeholder = t.sidePlaceholderM2;
+        inputM2.previousElementSibling.textContent = t.sideLabelM2;
+    }
+    if (inputDecimalFeddan) {
+        inputDecimalFeddan.placeholder = t.sidePlaceholderDecimal;
+        inputDecimalFeddan.previousElementSibling.textContent = t.sideLabelDecimal;
+    }
+    if (inputFeddan) {
+        inputFeddan.placeholder = t.sidePlaceholderFeddan;
+        inputFeddan.nextElementSibling.textContent = t.sidePlaceholderFeddan;
+        // Update the main label for Arabic Units group
+        inputFeddan.closest('.fqs-inputs').previousElementSibling.textContent = t.sideLabelArabic;
+    }
+    if (inputQirat) {
+        inputQirat.placeholder = t.sidePlaceholderQirat;
+        inputQirat.nextElementSibling.textContent = t.sidePlaceholderQirat;
+    }
+    if (inputSahm) {
+        inputSahm.placeholder = t.sidePlaceholderSahm;
+        inputSahm.nextElementSibling.textContent = t.sidePlaceholderSahm;
+    }
     // Update language toggle UI
     const langAr = document.getElementById('langAr');
     const langEn = document.getElementById('langEn');
@@ -750,67 +787,88 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('langSwitchBtn').addEventListener('click', toggleLang);
 
     const converter = new KMLConverter();
-    // Side conversion logic (area conversion box)
-    const sideInput = document.getElementById('sideAreaInput');
-    const sideBtn = document.getElementById('sideConvertBtn');
-    const sideResult = document.getElementById('sideResult');
-    const copyBtn = document.getElementById('copyBtn');
-    if (sideBtn && sideInput && sideResult && copyBtn) {
-        sideBtn.addEventListener('click', () => {
-            const val = parseFloat(sideInput.value);
-            const lang = getCurrentLang();
-            if (isNaN(val) || val <= 0) {
-                sideResult.textContent = lang === 'ar' ? 'يرجى إدخال قيمة صحيحة بالمتر المربع' : 'Please enter a valid value in square meters';
-                copyBtn.style.display = 'none';
-                return;
+    // Side conversion logic (real-time)
+    const inputM2 = document.getElementById('inputM2');
+    const inputDecimalFeddan = document.getElementById('inputDecimalFeddan');
+    const inputFeddan = document.getElementById('inputFeddan');
+    const inputQirat = document.getElementById('inputQirat');
+    const inputSahm = document.getElementById('inputSahm');
+
+    if (inputM2 && inputDecimalFeddan && inputFeddan && inputQirat && inputSahm) {
+
+        // Constants
+        const FEDDAN_TO_M2 = 4200.83;
+        const QIRAT_TO_SAHM = 24;
+        const FEDDAN_TO_QIRAT = 24;
+        const SAHM_PER_FEDDAN = QIRAT_TO_SAHM * FEDDAN_TO_QIRAT; // 576
+        const SAHM_TO_M2 = FEDDAN_TO_M2 / SAHM_PER_FEDDAN; // ~7.293
+
+        // Helper to update all inputs except the source
+        const updateInputs = (source, m2) => {
+            if (m2 < 0) return;
+
+            // 1. Update m2 input if not source
+            if (source !== 'm2') {
+                inputM2.value = m2 === 0 ? '' : parseFloat(m2.toFixed(2));
             }
-            const arabic = converter.convertToArabicUnits(val, false);
-            if (!arabic) {
-                sideResult.textContent = lang === 'ar' ? 'لا يمكن التحويل لهذه القيمة' : 'Cannot convert this value';
-                copyBtn.style.display = 'none';
-                return;
+
+            // 2. Update Decimal Feddan if not source
+            if (source !== 'decimal') {
+                const decimalFeddan = m2 / FEDDAN_TO_M2;
+                inputDecimalFeddan.value = m2 === 0 ? '' : parseFloat(decimalFeddan.toFixed(4));
             }
-            // Show result without parentheses in UI
-            sideResult.textContent = '\u202B' + arabic + '\u202C';
-            copyBtn.style.display = 'block';
+
+            // 3. Update F/Q/S if not source
+            if (source !== 'fqs') {
+                if (m2 === 0) {
+                    inputFeddan.value = '';
+                    inputQirat.value = '';
+                    inputSahm.value = '';
+                } else {
+                    let totalSahm = m2 / SAHM_TO_M2;
+                    let f = Math.floor(totalSahm / SAHM_PER_FEDDAN);
+                    let remainingSahm = totalSahm - (f * SAHM_PER_FEDDAN);
+                    let q = Math.floor(remainingSahm / QIRAT_TO_SAHM);
+                    let s = remainingSahm - (q * QIRAT_TO_SAHM);
+
+                    inputFeddan.value = f;
+                    inputQirat.value = q;
+                    inputSahm.value = parseFloat(s.toFixed(2));
+                }
+            }
+        };
+
+        // Event Listeners
+        inputM2.addEventListener('input', () => {
+            const val = parseFloat(inputM2.value) || 0;
+            updateInputs('m2', val);
         });
-        // Copy logic
-        copyBtn.addEventListener('click', async () => {
-            try {
-                const textToCopy = sideResult.textContent;
-                await navigator.clipboard.writeText(textToCopy);
-                // Change button icon temporarily to indicate success
-                const originalIcon = copyBtn.querySelector('.copy-icon').textContent;
-                copyBtn.querySelector('.copy-icon').textContent = '✅';
-                copyBtn.classList.add('success');
-                setTimeout(() => {
-                    copyBtn.querySelector('.copy-icon').textContent = originalIcon;
-                    copyBtn.classList.remove('success');
-                }, 1500);
-            } catch (err) {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = sideResult.textContent;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                // Change button icon temporarily
-                const originalIcon = copyBtn.querySelector('.copy-icon').textContent;
-                copyBtn.querySelector('.copy-icon').textContent = '✅';
-                copyBtn.classList.add('success');
-                setTimeout(() => {
-                    copyBtn.querySelector('.copy-icon').textContent = originalIcon;
-                    copyBtn.classList.remove('success');
-                }, 1500);
-            }
+
+        inputDecimalFeddan.addEventListener('input', () => {
+            const val = parseFloat(inputDecimalFeddan.value) || 0;
+            const m2 = val * FEDDAN_TO_M2;
+            updateInputs('decimal', m2);
         });
+
+        const updateFromFQS = () => {
+            const f = parseFloat(inputFeddan.value) || 0;
+            const q = parseFloat(inputQirat.value) || 0;
+            const s = parseFloat(inputSahm.value) || 0;
+
+            const totalSahm = (f * SAHM_PER_FEDDAN) + (q * QIRAT_TO_SAHM) + s;
+            const m2 = totalSahm * SAHM_TO_M2;
+            updateInputs('fqs', m2);
+        };
+
+        inputFeddan.addEventListener('input', updateFromFQS);
+        inputQirat.addEventListener('input', updateFromFQS);
+        inputSahm.addEventListener('input', updateFromFQS);
     }
-}); 
+});
 
 // Patch KMLConverter to use translations for status/progress
 const origShowStatus = KMLConverter.prototype.showStatus;
-KMLConverter.prototype.showStatus = function(message, type) {
+KMLConverter.prototype.showStatus = function (message, type) {
     const lang = getCurrentLang();
     // Map known messages to translation keys
     const map = {
@@ -823,7 +881,7 @@ KMLConverter.prototype.showStatus = function(message, type) {
     origShowStatus.call(this, message, type);
 };
 const origShowProgress = KMLConverter.prototype.updateProgress;
-KMLConverter.prototype.updateProgress = function(percentage) {
+KMLConverter.prototype.updateProgress = function (percentage) {
     const lang = getCurrentLang();
     const progressText = document.getElementById('progressText');
     progressText.textContent = `${translations[lang].progress} ${Math.round(percentage)}%`;

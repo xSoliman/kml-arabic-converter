@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KML Arabic Converter</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23667eea'/><text x='50' y='60' font-size='50' text-anchor='middle' fill='white' font-family='Cairo'>K</text></svg>">
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23667eea'/><text x='50' y='60' font-size='50' text-anchor='middle' fill='white' font-family='Cairo'>K</text></svg>">
 </head>
+
 <body>
     <div class="container">
         <button id="langSwitchBtn" class="lang-switch-btn" aria-label="تبديل اللغة">
@@ -66,15 +69,42 @@
             <div class="side-section">
                 <div class="side-convert-box">
                     <h3 class="side-title">حساب المساحة من متر مربع إلى الوحدات العربية</h3>
-                    <div class="side-row">
-                        <input type="number" min="0" step="any" id="sideAreaInput" class="side-input" placeholder="أدخل المساحة بالمتر المربع">
-                        <button class="btn side-btn" id="sideConvertBtn">حساب</button>
+
+                    <div class="converter-group">
+                        <label class="converter-label">متر مربع (m²)</label>
+                        <input type="number" min="0" step="any" id="inputM2" class="side-input"
+                            placeholder="المساحة بالمتر المربع">
                     </div>
-                    <div class="side-result-container">
-                        <div class="side-result" id="sideResult"></div>
-                        <button class="copy-btn" id="copyBtn" style="display: none;">
-                            <span class="copy-icon">Copy</span>
-                        </button>
+
+                    <div class="converter-divider"></div>
+
+                    <div class="converter-group">
+                        <label class="converter-label">فدان عشري</label>
+                        <input type="number" min="0" step="any" id="inputDecimalFeddan" class="side-input"
+                            placeholder="فدان (عشري)">
+                    </div>
+
+                    <div class="converter-divider"></div>
+
+                    <div class="converter-group">
+                        <label class="converter-label">الوحدات العربية</label>
+                        <div class="fqs-inputs">
+                            <div class="fqs-item">
+                                <input type="number" min="0" step="any" id="inputFeddan" class="side-input"
+                                    placeholder="فدان">
+                                <span>فدان</span>
+                            </div>
+                            <div class="fqs-item">
+                                <input type="number" min="0" step="any" id="inputQirat" class="side-input"
+                                    placeholder="قيراط">
+                                <span>قيراط</span>
+                            </div>
+                            <div class="fqs-item">
+                                <input type="number" min="0" step="any" id="inputSahm" class="side-input"
+                                    placeholder="سهم">
+                                <span>سهم</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -84,11 +114,12 @@
             <h3>كيف يعمل:</h3>
             <ul>
                 <li><strong>الخطوة الأولى:</strong> قم برفع ملف KML يحتوي على أسماء المواقع باللغة الإنجليزية</li>
-                <li><strong>الخطوة الثانية:</strong> اختر تحويل وحدات المساحة (اختياري) إذا كنت تريد تحويل وحدات المساحة إلى الوحدات العربية</li>
+                <li><strong>الخطوة الثانية:</strong> اختر تحويل وحدات المساحة (اختياري) إذا كنت تريد تحويل وحدات المساحة
+                    إلى الوحدات العربية</li>
                 <li><strong>الخطوة الثالثة:</strong> اضغط على "تحويل KML" لبدء عملية التحويل</li>
                 <li><strong>الخطوة الرابعة:</strong> قم بتحميل ملف KML المحول جاهز لـ Google Earth</li>
             </ul>
-            
+
             <h4>ميزات التحويل:</h4>
             <ul>
                 <li>تحويل الحروف الإنجليزية إلى ما يعادلها في لوحة المفاتيح العربية</li>
@@ -97,7 +128,7 @@
                 <li>تحويل الفواصل (,) إلى (و) والحفاظ على النقاط (.) للأرقام العشرية</li>
                 <li><strong>تحويل وحدات المساحة:</strong> تحويل (م²) إلى الوحدات العربية (سهم، قيراط، فدان)</li>
             </ul>
-            
+
             <h4>أمثلة على التحويل:</h4>
             <ul>
                 <li><code>Area: 5000 m²</code> → <code>Area: (١ ف ٤ ط ١٣٫٦٠ س)</code></li>
@@ -110,4 +141,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="converter.js"></script>
 </body>
-</html> 
+
+</html>
