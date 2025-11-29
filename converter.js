@@ -809,13 +809,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 1. Update m2 input if not source
             if (source !== 'm2') {
-                inputM2.value = m2 === 0 ? '' : parseFloat(m2.toFixed(2));
+                inputM2.value = m2 === 0 ? '' : parseFloat(m2.toFixed(4));
             }
 
             // 2. Update Decimal Feddan if not source
             if (source !== 'decimal') {
                 const decimalFeddan = m2 / FEDDAN_TO_M2;
-                inputDecimalFeddan.value = m2 === 0 ? '' : parseFloat(decimalFeddan.toFixed(4));
+                inputDecimalFeddan.value = m2 === 0 ? '' : parseFloat(decimalFeddan.toFixed(6));
             }
 
             // 3. Update F/Q/S if not source
@@ -833,7 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     inputFeddan.value = f;
                     inputQirat.value = q;
-                    inputSahm.value = parseFloat(s.toFixed(2));
+                    inputSahm.value = parseFloat(s.toFixed(4));
                 }
             }
         };
