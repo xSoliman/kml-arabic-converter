@@ -19,7 +19,7 @@ body {
 .container {
     background: rgba(255, 255, 255, 0.97);
     border-radius: 28px;
-    box-shadow: 0 24px 48px rgba(102, 126, 234, 0.13), 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 24px 48px rgba(102, 126, 234, 0.13), 0 2px 8px rgba(0, 0, 0, 0.04);
     padding: 28px 20px 18px 20px;
     max-width: 1000px;
     width: 100%;
@@ -29,7 +29,7 @@ body {
 }
 
 .container:hover {
-    box-shadow: 0 32px 64px rgba(102, 126, 234, 0.18), 0 4px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 32px 64px rgba(102, 126, 234, 0.18), 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .main-content {
@@ -58,7 +58,7 @@ body {
 
 .main-title {
     font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    animation: fadeInDown 1.2s cubic-bezier(.4,2,.6,1);
+    animation: fadeInDown 1.2s cubic-bezier(.4, 2, .6, 1);
     color: #3a3a3a;
     margin-bottom: 6px;
     font-size: 2em;
@@ -72,6 +72,7 @@ body {
         opacity: 0;
         transform: translateY(-40px);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0);
@@ -99,14 +100,15 @@ body {
     border-radius: 18px;
     padding: 18px 8px;
     margin-bottom: 16px;
-    transition: all 0.3s cubic-bezier(.4,2,.6,1);
+    transition: all 0.3s cubic-bezier(.4, 2, .6, 1);
     cursor: pointer;
     background: #f7f8ff;
     position: relative;
     overflow: hidden;
 }
 
-.upload-area:hover, .upload-area.dragover {
+.upload-area:hover,
+.upload-area.dragover {
     border-color: #667eea;
     background: #eef1ff;
     box-shadow: 0 4px 24px rgba(102, 126, 234, 0.08);
@@ -120,8 +122,13 @@ body {
 }
 
 @keyframes bounce {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-8px); }
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-8px);
+    }
 }
 
 .upload-text {
@@ -215,13 +222,13 @@ body {
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 }
 
-.option-checkbox input[type="checkbox"]:checked + .checkmark {
+.option-checkbox input[type="checkbox"]:checked+.checkmark {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-color: #667eea;
     box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
 }
 
-.option-checkbox input[type="checkbox"]:checked + .checkmark::after {
+.option-checkbox input[type="checkbox"]:checked+.checkmark::after {
     content: '✓';
     position: absolute;
     top: 50%;
@@ -256,7 +263,7 @@ body {
     border-radius: 12px;
     font-size: 1em;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(.4,2,.6,1);
+    transition: all 0.2s cubic-bezier(.4, 2, .6, 1);
     margin: 8px 4px 0 4px;
     min-width: 100px;
     font-weight: 600;
@@ -278,7 +285,8 @@ body {
     color: #f3f3f3;
 }
 
-.btn:focus, .btn:active {
+.btn:focus,
+.btn:active {
     outline: 2px solid #764ba2;
     outline-offset: 2px;
     box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.18);
@@ -307,7 +315,7 @@ body {
     height: 100%;
     background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
     width: 0%;
-    transition: width 0.3s cubic-bezier(.4,2,.6,1);
+    transition: width 0.3s cubic-bezier(.4, 2, .6, 1);
 }
 
 .progress-text {
@@ -434,6 +442,14 @@ body {
     direction: ltr;
     text-align: left;
     transition: border 0.2s;
+    -moz-appearance: textfield;
+    /* Firefox */
+}
+
+.side-input::-webkit-outer-spin-button,
+.side-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .side-input:focus {
@@ -471,7 +487,7 @@ body {
     border-radius: 6px;
     padding: 6px 8px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(.4,2,.6,1);
+    transition: all 0.3s cubic-bezier(.4, 2, .6, 1);
     flex-shrink: 0;
     margin-top: 2px;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
@@ -504,7 +520,7 @@ body {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
     transition: left 0.5s;
 }
 
@@ -552,11 +568,13 @@ body {
     border: 2px solid #667eea;
     overflow: hidden;
 }
+
 .lang-switch-toggle {
     display: flex;
     width: 100%;
     height: 100%;
 }
+
 .lang-switch-option {
     padding: 6px 18px;
     border-radius: 18px;
@@ -569,14 +587,17 @@ body {
     border: none;
     outline: none;
 }
+
 .lang-switch-option.active {
     background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
     color: #fff;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
 }
+
 .lang-switch-btn:focus {
     outline: none;
 }
+
 @media (max-width: 700px) {
     .lang-switch-btn {
         top: 10px;
@@ -584,6 +605,7 @@ body {
         min-width: 90px;
         font-size: 0.95em;
     }
+
     .lang-switch-option {
         padding: 5px 10px;
         font-size: 0.95em;
@@ -635,4 +657,4 @@ body {
 /* Adjust side-input to be full width in groups */
 .converter-group .side-input {
     width: 100%;
-} 
+}
